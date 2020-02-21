@@ -1,4 +1,4 @@
-package com.orangemako.spring.entity;
+package xiong.o2o.entity;
 
 import lombok.Getter;
 import lombok.Setter;
