@@ -1,5 +1,7 @@
 package xiong.o2o.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
 import java.util.Date;
@@ -20,6 +22,7 @@ public class User {
         this.updateTime = new Date();
     }
 
+    @TableId(type = IdType.AUTO)
     private Long id;
     private String name;
     private String password;
