@@ -6,6 +6,7 @@ import lombok.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.HttpRequestHandler;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ import xiong.o2o.entity.User;
 import xiong.o2o.exception.InvalidParamException;
 import xiong.o2o.exception.UnauthorizatedException;
 import xiong.o2o.mapper.UserMapper;
+import xiong.o2o.shiro.JWTUtil;
 import xiong.o2o.util.OutputResult;
 
 import javax.servlet.http.HttpServletRequest;
@@ -24,6 +26,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Data
 class LoginInfoData {
@@ -39,33 +42,47 @@ class SignupInfoData {
     String verificationCode;
 }
 
+@Data
+class SigninReturnData {
+    final String token;
+}
+
 @RestController
 public class UserLoginController {
 
     @Autowired
     UserMapper userMapper;
 
+    @Autowired
+    RedisTemplate<String, Object> redisTemplate;
+
     Logger logger = LoggerFactory.getLogger(UserLoginController.class);
 
     @PostMapping("/sendVerifyCode")
-    OutputResult sendVerifyCode(@RequestParam String email, HttpServletRequest request) {
+    OutputResult sendVerifyCode(@RequestParam String email) {
         int randomNum = (int)Math.floor(Math.random() * 1000000);
         String numStr = String.format("%06d", new Integer(randomNum));
         System.out.println(String.format("For email %s, get verification code %s", email, numStr));
-        request.getSession().setAttribute("email", email);
-        request.getSession().setAttribute("verificationCode", numStr);
+
+        redisTemplate.opsForValue().set("code." + email, numStr);
+        redisTemplate.expire("code." + email, 5, TimeUnit.MINUTES);
+        // request.getSession().setAttribute("email", email);
+        // request.getSession().setAttribute("verificationCode", numStr);
         return new OutputResult(null);
     }
 
     @PostMapping("/signup")
-    OutputResult signup(@RequestBody SignupInfoData loginInfo, HttpServletRequest request) {
-        if (!request.getSession().getAttribute("email").equals(loginInfo.getEmail())) {
-            throw new InvalidParamException("The verification is not valid, please retry to get it.");
+    OutputResult signup(@RequestBody SignupInfoData loginInfo) {
+        if (loginInfo.getEmail() == null) {
+            throw new InvalidParamException("The email is not valid.");
         }
-        String code = (String)request.getSession().getAttribute("verificationCode");
-        if (!code.equals(loginInfo.getVerificationCode())) {
+
+        String existCode = (String)redisTemplate.opsForValue().get("code." + loginInfo.getEmail());
+
+        if (existCode == null || loginInfo.getVerificationCode() == null || !existCode.equals(loginInfo.getVerificationCode())) {
             throw new InvalidParamException("The verification is not valid.");
         }
+
         User user = new User();
         user.setName(loginInfo.getUsername());
         // 对密码进行md5哈希
@@ -83,13 +100,14 @@ public class UserLoginController {
         userMapper.insert(user);
         assert user.getId() != null;
 
-        request.getSession().setAttribute("loginUser", user.getId());
+        String token = JWTUtil.sign(user.getId().toString(), "123456");
+        // request.getSession().setAttribute("loginUser", user.getId());
         // request.getSession().setAttribute("username", loginInfo.);
-        return new OutputResult(null);
+        return new OutputResult(new SigninReturnData(token));
     }
 
     @PostMapping("/login")
-    OutputResult login(@RequestBody LoginInfoData loginInfo, HttpServletRequest request) {
+    OutputResult login(@RequestBody LoginInfoData loginInfo) {
         String username = loginInfo.getUsername();
 
         String encodePwd = "";
@@ -107,12 +125,8 @@ public class UserLoginController {
         if (!user.getPassword().equals(encodePwd)) {
             throw new UnauthorizatedException("Username or password is incorrect");
         }
-        request.getSession().setAttribute("loginUser", user.getId());
-        return new OutputResult(null);
-    }
 
-    @GetMapping("/greeting")
-    public String greeting() {
-        return "hello world";
+        String token = JWTUtil.sign(user.getId().toString(), "123456");
+        return new OutputResult(new SigninReturnData(token));
     }
 }

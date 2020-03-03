@@ -1,52 +1,80 @@
-import React from 'react';
-import { App, View, Page, List, ListInput, ListButton } from 'framework7-react';
+import React, { useState, useCallback } from 'react';
+import { App, View, Page, List, ListInput, ListButton, Button } from 'framework7-react';
 import { request } from "./common";
 
-async function handleSendCode() {
-  request("/sendVerifyCode?email=lx@xx", { method: "POST" });
-}
-
 // home.jsx
-export default () => (
-  <Page name="home">
-    <List noHairlinesMd>
-      <ListInput
-        label="E-mail"
-        type="email"
-        placeholder="Your e-mail"
-        clearButton
-      />
+export default () => {
+  let [email, setEmail] = useState("");
+  let [username, setUsername] = useState("");
+  let [password, setPassword] = useState("");
+  let [verificationCode, setCode] = useState("");
 
-      <ListInput
-        label="Email verification code"
-        type="text"
-        placeholder="verification code"
-        clearButton
-      />
-      <ListButton title="Send Verification Code" onClick={handleSendCode}/>
+  const handleEmail = useCallback(event => {
+    setEmail(event.target.value);
+  });
+  const handleUsername = useCallback(event => {
+    setUsername(event.target.value);
+  });
+  const handlePassword = useCallback(event => {
+    setPassword(event.target.value);
+  });
+  const handleCode = useCallback(event => {
+    setCode(event.target.value);
+  });
 
-      <ListInput
-        label="Name"
-        type="text"
-        placeholder="Your name"
-        clearButton
-      />
+  const handleSendCode = useCallback(() => {
+    request(`/sendVerifyCode?email=${email}`, { method: "POST" });
+  }, [email]);
 
-      <ListInput
-        label="Enter Password"
-        type="password"
-        placeholder="Your password"
-        clearButton
-      />
+  const handleSignup = useCallback(() => {
+    let body = {
+      email, username, password, verificationCode
+    };
+    request(`/signup`, { method: "POST", body });
+  });
+  return (
+    <Page name="home">
+      <List noHairlinesMd>
+        <ListInput
+          label="E-mail"
+          type="email"
+          placeholder="Your e-mail"
+          value={email}
+          onChange={handleEmail}
+          clearButton
+        />
 
-      <ListInput
-        label="Enter Password again"
-        type="password"
-        placeholder="Your password"
-        clearButton
-      />
+        <ListInput
+          label="Email verification code"
+          type="text"
+          placeholder="verification code"
+          value={verificationCode}
+          onChange={handleCode}
+          clearButton
+        />
+        <ListButton title="Send Verification Code" onClick={handleSendCode}/>
 
-      
-    </List>
-  </Page>
-);
+        <ListInput
+          label="Name"
+          type="text"
+          placeholder="Your name"
+          value={username}
+          onChange={handleUsername}
+          clearButton
+        />
+
+        <ListInput
+          label="Enter Password"
+          type="password"
+          placeholder="Your password"
+          value={password}
+          onChange={handlePassword}
+          clearButton
+        />
+        
+      </List>
+
+      <Button fill onClick={handleSignup}>Signup</Button>
+    </Page>
+  );
+};
