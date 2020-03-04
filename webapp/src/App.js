@@ -3,7 +3,8 @@ import logo from './logo.svg';
 import 'framework7/css/framework7.bundle.css';
 import './App.css';
 import { App, View, Page, Navbar, Toolbar, Link } from 'framework7-react';
-import HomePage from "./Home";
+import HomePage from "./Signup";
+import LoginPage from "./Login";
 
 const f7params = {
   // Array with app routes
@@ -16,7 +17,11 @@ const f7params = {
 
   routes: [
     {
-      path: '/',
+      path: '/login',
+      component: LoginPage,
+    },
+    {
+      path: '/signup',
       component: HomePage,
     },
     // {
@@ -35,7 +40,7 @@ function MyApp() {
     <App params={f7params}>
 
     {/* Your main view, should have "main" prop */}
-    <View main url="/">
+    <View main url="/login">
     </View>
   </App>
   );

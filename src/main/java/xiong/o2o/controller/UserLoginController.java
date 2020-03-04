@@ -24,6 +24,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -88,8 +89,10 @@ public class UserLoginController {
         // 对密码进行md5哈希
         String password = loginInfo.getPassword();
         try {
-            byte[] hashPwd = MessageDigest.getInstance("md5").digest(password.getBytes());
-            user.setPassword(hashPwd.toString());
+            byte[] originPwd = password.getBytes();
+            byte[] hashPwd = MessageDigest.getInstance("md5").digest(originPwd);
+            String pwdStr = Base64.getEncoder().encodeToString(hashPwd);
+            user.setPassword(pwdStr);
         } catch (NoSuchAlgorithmException e) {
             System.err.println(e);
         }
@@ -112,14 +115,16 @@ public class UserLoginController {
 
         String encodePwd = "";
         try {
-            encodePwd = MessageDigest.getInstance("md5").digest(loginInfo.getPassword().getBytes()).toString();
+            byte[] pwdBytes = loginInfo.getPassword().getBytes();
+            byte[] encodeBytes = MessageDigest.getInstance("md5").digest(pwdBytes);
+            encodePwd = Base64.getEncoder().encodeToString(encodeBytes);
         } catch (NoSuchAlgorithmException e) {
             System.err.println(e);
         }
 
         QueryWrapper wrapper = new QueryWrapper<User>();
-        wrapper.eq("username", loginInfo.getUsername());
-        logger.info("select user sql", wrapper.getSqlSelect());
+        wrapper.eq("name", loginInfo.getUsername());
+        logger.info("select user sql", wrapper.getSqlSegment());
         User user = userMapper.selectOne(wrapper);
 
         if (!user.getPassword().equals(encodePwd)) {
