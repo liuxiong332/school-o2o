@@ -5,6 +5,8 @@ import './App.css';
 import { App, View, Page, Navbar, Toolbar, Link } from 'framework7-react';
 import HomePage from "./Signup";
 import LoginPage from "./Login";
+import CommoditiesPage from "./Commodities";
+import CommodityEdit from "./CommodityEdit";
 
 const f7params = {
   // Array with app routes
@@ -24,6 +26,19 @@ const f7params = {
       path: '/signup',
       component: HomePage,
     },
+    {
+      path: '/commodities',
+      component: CommoditiesPage,
+    },
+    {
+      path: '/commodities/create',
+      component: CommodityEdit,
+    },
+    {
+      path: '/commodities/edit/:id',
+      component: CommodityEdit,
+    }
+    
     // {
     //   path: '/about/',
     //   component: AboutPage,
@@ -40,7 +55,7 @@ function MyApp() {
     <App params={f7params}>
 
     {/* Your main view, should have "main" prop */}
-    <View main url="/login">
+    <View main url="/commodities">
     </View>
   </App>
   );

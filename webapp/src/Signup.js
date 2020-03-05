@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { App, View, Page, List, ListInput, ListButton, Button } from 'framework7-react';
+import { App, View, Page, List, ListInput, ListButton, Button, Link } from 'framework7-react';
 import { request } from "./common";
 
 // home.jsx
@@ -75,6 +75,7 @@ export default () => {
       </List>
 
       <Button fill onClick={handleSignup}>Signup</Button>
+      <Link href="/login/">登录</Link>
     </Page>
   );
 };
