@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { App, View, Page, List, ListInput, ListButton, Button, Link } from 'framework7-react';
+import { App, View, Page, List, ListInput, ListButton, Button, Link, Row, Col } from 'framework7-react';
 import { request } from "./common";
 
 // home.jsx
@@ -9,7 +9,8 @@ export default (props) => {
   let [description, setDescription] = useState("");
   let [price, setPrice] = useState(0);
   let [quantity, setQuantity] = useState(1);
- 
+  let [promoteId, setPromoteId] = useState(null);
+
   const handleName = useCallback(event => {
     setName(event.target.value);
   });
@@ -30,6 +31,7 @@ export default (props) => {
         setDescription(item.description);
         setPrice(item.price);
         setQuantity(item.quantity);
+        setPromoteId(item.promoteId);
       });
     }
   }, [props.id]);
@@ -43,6 +45,17 @@ export default (props) => {
       request(`/commodities`, { method: "POST", body });
     }
   }, [props.id, name, description, price, quantity]);
+
+  const handleAddPromote = useCallback(() => {
+    if (promoteId != null) {
+      request(`/seckills/${promoteId}`, { method: "DELETE" }).then(() => {
+        setPromoteId(null);
+      });
+    } else {
+      props.$f7router.navigate(`/commodities/${props.id}/seckills/create`);
+    }
+  }, [props.id, promoteId]);
+
   return (
     <Page name="commodityEdit">
       <List noHairlinesMd>
@@ -85,13 +98,33 @@ export default (props) => {
         
       </List>
 
-      <Button fill onClick={handleEdit}>{props.id ? "编辑" : "创建" }</Button>
+      {props.id && (
+        <Row tag="p">
+          <Col tag="span">
+            <Button fill onClick={handleAddPromote}>
+              {promoteId == null ? "添加秒杀活动" : "删除秒杀活动"}
+            </Button>
+          </Col>
+        </Row>
+      )}
+
+      <Row tag="p">
+        <Col tag="span">
+          <Button fill onClick={handleEdit}>{props.id ? "编辑" : "创建" }</Button>
+        </Col>
+      </Row>
+      
       {/* <Button fill onClick={() => this.$f7router.back()}>
         返回
       </Button> */}
-      <Button fill onClick={() => props.$f7router.back()}>
-        返回
-      </Button>
+      <Row tag="p">
+        <Col tag="span">
+          <Button fill onClick={() => props.$f7router.back()}>
+            返回
+          </Button>
+        </Col>
+      </Row>
+      
     </Page>
   );
 };

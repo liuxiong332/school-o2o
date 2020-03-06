@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import xiong.o2o.entity.Seckill;
 import xiong.o2o.mapper.CommodityMapper;
 import xiong.o2o.service.CommodityService;
 import xiong.o2o.util.OutputResult;
@@ -38,6 +39,18 @@ public class CommodityController {
     OutputResult updateCommodity(@RequestBody CommodityVO commodityVO, @PathVariable Long id) {
         commodityVO.setId(id);
         commodityService.updateCommodity(commodityVO);
+        return new OutputResult(null);
+    }
+
+    @PostMapping("/seckills/")
+    OutputResult createSeckill(@RequestBody Seckill seckill) {
+        commodityService.createSeckill(seckill);
+        return new OutputResult(null);
+    }
+
+    @DeleteMapping("/seckills/{id}")
+    OutputResult deleteSeckill(@PathVariable Long id) {
+        commodityService.deleteSeckill(id);
         return new OutputResult(null);
     }
 }

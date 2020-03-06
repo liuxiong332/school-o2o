@@ -11,8 +11,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import xiong.o2o.entity.Commodity;
 import xiong.o2o.entity.Inventory;
+import xiong.o2o.entity.Seckill;
 import xiong.o2o.mapper.CommodityMapper;
 import xiong.o2o.mapper.InventoryMapper;
+import xiong.o2o.mapper.SeckillMapper;
 import xiong.o2o.vo.CommodityVO;
 
 import java.util.Collections;
@@ -27,6 +29,9 @@ public class CommodityService {
 
     @Autowired
     InventoryMapper inventoryMapper;
+
+    @Autowired
+    SeckillMapper seckillMapper;
 
     @Transactional
     public List<CommodityVO> getAllCommodities() {
@@ -51,7 +56,11 @@ public class CommodityService {
         QueryWrapper<Inventory> query = new QueryWrapper<>();
         query.eq("commodity_id", id);
         Inventory inventory = inventoryMapper.selectOne(query);
-        return CommodityVO.fromCI(commodity, inventory);
+
+        QueryWrapper<Seckill> seckillQuery = new QueryWrapper<>();
+        seckillQuery.eq("commodity_id", id);
+        Seckill seckill = seckillMapper.selectOne(seckillQuery);
+        return CommodityVO.fromCI(commodity, inventory, seckill);
     }
 
     @Transactional
@@ -88,5 +97,13 @@ public class CommodityService {
         UpdateWrapper update = new UpdateWrapper();
         update.eq("commodeity_id", commodity.getId());
         inventoryMapper.update(inventory, update);
+    }
+
+    public void createSeckill(Seckill seckill) {
+        seckillMapper.insert(seckill);
+    }
+
+    public void deleteSeckill(Long seckillId) {
+        seckillMapper.deleteById(seckillId);
     }
 }

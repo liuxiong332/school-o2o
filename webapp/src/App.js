@@ -7,6 +7,7 @@ import HomePage from "./Signup";
 import LoginPage from "./Login";
 import CommoditiesPage from "./Commodities";
 import CommodityEdit from "./CommodityEdit";
+import SeckillEdit from "./SeckillEdit";
 
 const f7params = {
   // Array with app routes
@@ -37,8 +38,12 @@ const f7params = {
     {
       path: '/commodities/edit/:id',
       component: CommodityEdit,
-    }
-    
+    },
+    {
+      path: '/commodities/:commodityId/seckills/create',
+      component: SeckillEdit,
+    },
+     
     // {
     //   path: '/about/',
     //   component: AboutPage,
