@@ -9,12 +9,11 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import xiong.o2o.entity.Commodity;
-import xiong.o2o.entity.Inventory;
-import xiong.o2o.entity.Seckill;
-import xiong.o2o.mapper.CommodityMapper;
-import xiong.o2o.mapper.InventoryMapper;
-import xiong.o2o.mapper.SeckillMapper;
+import xiong.o2o.entity.*;
+import xiong.o2o.exception.InvalidParamException;
+import xiong.o2o.exception.UnauthorizatedException;
+import xiong.o2o.mapper.*;
+import xiong.o2o.shiro.JWTUtil;
 import xiong.o2o.vo.CommodityVO;
 
 import java.util.Collections;
@@ -32,6 +31,12 @@ public class CommodityService {
 
     @Autowired
     SeckillMapper seckillMapper;
+
+    @Autowired
+    UserMapper userMapper;
+
+    @Autowired
+    DeliveryMapper deliveryMapper;
 
     @Transactional
     public List<CommodityVO> getAllCommodities() {
@@ -95,7 +100,7 @@ public class CommodityService {
         commodityMapper.updateById(commodity);
 
         UpdateWrapper update = new UpdateWrapper();
-        update.eq("commodeity_id", commodity.getId());
+        update.eq("commodity_id", commodity.getId());
         inventoryMapper.update(inventory, update);
     }
 
@@ -105,5 +110,48 @@ public class CommodityService {
 
     public void deleteSeckill(Long seckillId) {
         seckillMapper.deleteById(seckillId);
+    }
+
+    @Transactional
+    public void placeCommodity(Long commodityId, String token) {
+        // 用户是否登录
+        String userId = JWTUtil.getUserName(token);
+        if (!JWTUtil.verify(token, userId, "123456")) {
+            throw new UnauthorizatedException("Token is not valid");
+        }
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new UnauthorizatedException("User is not valid");
+        }
+
+        // 获取商品信息
+        Commodity commodity = commodityMapper.selectById(commodityId);
+        if (commodity == null) {
+            throw new InvalidParamException("The commodity is not exists");
+        }
+
+        // QueryWrapper<Inventory> inventoryQuery = new QueryWrapper<>();
+        // inventoryQuery.eq("commodity_id", commodity.getId());
+        // Inventory inventory = inventoryMapper.selectOne(inventoryQuery);
+
+        // 减库存
+        inventoryMapper.decreaseQuantity(commodityId,1);
+
+        // 查询是否正在秒杀活动中
+        QueryWrapper<Seckill> seckillQuery = new QueryWrapper<>();
+        seckillQuery.eq("commodity_id", commodityId);
+        Seckill seckill = seckillMapper.selectOne(seckillQuery);
+
+        // 如果正在秒杀中，则取秒杀价格，否则取正常价格
+        Float tradePrice = seckill == null ? commodity.getPrice() : seckill.getSeckillPrice();
+
+        Delivery delivery = new Delivery();
+        delivery.setCommodityId(commodityId);
+        delivery.setPrice(tradePrice);
+        delivery.setQuantity(1);
+        delivery.setSeckillId(seckill == null ? null : seckill.getId());
+
+        // 新增一个订单
+        deliveryMapper.insert(delivery);
     }
 }

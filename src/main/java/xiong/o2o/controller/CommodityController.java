@@ -53,4 +53,10 @@ public class CommodityController {
         commodityService.deleteSeckill(id);
         return new OutputResult(null);
     }
+
+    @PostMapping("/commodities/{id}/placeOrder")
+    OutputResult<List<CommodityVO>> placeOrder(@PathVariable Long id, @RequestHeader String token) {
+        commodityService.placeCommodity(id, token);
+        return new OutputResult(null);
+    }
 }

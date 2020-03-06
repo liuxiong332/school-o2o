@@ -7,6 +7,7 @@ import HomePage from "./Signup";
 import LoginPage from "./Login";
 import CommoditiesPage from "./Commodities";
 import CommodityEdit from "./CommodityEdit";
+import CommodityPlace from "./CommodityPlace";
 import SeckillEdit from "./SeckillEdit";
 
 const f7params = {
@@ -34,6 +35,10 @@ const f7params = {
     {
       path: '/commodities/create',
       component: CommodityEdit,
+    },
+    {
+      path: '/commodities/:id',
+      component: CommodityPlace,
     },
     {
       path: '/commodities/edit/:id',

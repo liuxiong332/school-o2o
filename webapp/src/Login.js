@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { App, View, Page, List, ListInput, ListButton, Button, Link } from 'framework7-react';
+import { App, View, Page, List, ListInput, ListButton, Button, Link, Block, Row, Col } from 'framework7-react';
 import { request } from "./common";
 
 // home.jsx
-export default () => {
+export default (props) => {
   let [username, setUsername] = useState("");
   let [password, setPassword] = useState("");
  
@@ -18,7 +18,10 @@ export default () => {
     let body = {
       username, password
     };
-    request(`/login`, { method: "POST", body });
+    request(`/login`, { method: "POST", body }).then(item => {
+      localStorage.setItem("token", item.token);
+      props.$f7router.navigate("/commodities");
+    });
   });
   return (
     <Page name="home">
@@ -44,8 +47,19 @@ export default () => {
         
       </List>
 
-      <Button fill onClick={handleLogin}>Login</Button>
-      <Link href="/signup/">注册</Link>
+      <Block>
+        <Row tag="p">
+          <Col tag="span">
+            <Button fill onClick={handleLogin}>登录</Button>
+          </Col>
+        </Row>
+
+        <Row tag="p">
+          <Col tag="span">
+            <Link href="/signup/">注册</Link>
+          </Col>
+        </Row>
+      </Block>
     </Page>
   );
 };
