@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import xiong.o2o.entity.Seckill;
+import xiong.o2o.exception.InvalidParamException;
+import xiong.o2o.exception.UnauthorizatedException;
 import xiong.o2o.mapper.CommodityMapper;
 import xiong.o2o.service.CommodityService;
 import xiong.o2o.util.OutputResult;
@@ -58,5 +60,15 @@ public class CommodityController {
     OutputResult<List<CommodityVO>> placeOrder(@PathVariable Long id, @RequestHeader String token) {
         commodityService.placeCommodity(id, token);
         return new OutputResult(null);
+    }
+
+    @ExceptionHandler
+    OutputResult processException(Exception e) throws Exception {
+        if (e instanceof UnauthorizatedException) {
+            return new OutputResult(401, "Unauthorization");
+        } else if (e instanceof InvalidParamException) {
+            return new OutputResult(500, e.getMessage());
+        }
+        throw e;
     }
 }

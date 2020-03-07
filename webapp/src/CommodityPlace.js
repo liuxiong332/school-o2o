@@ -1,5 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { App, View, Page, List, ListItem, ListButton, Button, Navbar, Link, Row, Col, BlockTitle, ListInput, Block } from 'framework7-react';
+import { 
+  App, View, Page, List, ListItem, ListButton, Button, Navbar, Link, 
+  Row, Col, BlockTitle, ListInput, Block, Icon, Sheet 
+} from 'framework7-react';
 import { request } from "./common";
 
 function getCommodity(id, setItemModel) {
@@ -10,7 +13,7 @@ function getCommodity(id, setItemModel) {
 // home.jsx
 export default (props) => {
   let [itemModel, setItemModel] = useState({});
-   
+  let [popupOpened, setPopupOpened] = useState(false);
  
   useEffect(() => {
     if (props.id) {
@@ -25,6 +28,15 @@ export default (props) => {
     }
     request(`/commodities/${props.id}/placeOrder`, { method: "POST", headers: { token } }).then(() => {
       getCommodity(props.id, setItemModel);
+      // alert("下单成功！");
+      setPopupOpened(true);
+      setTimeout(() => setPopupOpened(false), 1000);
+    }).catch(err => {
+      if (err.code === 401) {
+        props.$f7router.navigate("/login");
+      } else {
+        console.error(err);
+      }
     });
   }, [props.id]);
 
@@ -66,7 +78,7 @@ export default (props) => {
 
         <Row tag="p">
           <Col tag="span">
-            <Button fill onClick={handlePlace}>{"下单"}</Button>
+            <Button fill onClick={handlePlace}>{"下单"} <Icon icon="icon-home"></Icon></Button>
           </Col>
         </Row>
         <Row tag="p">
@@ -86,7 +98,14 @@ export default (props) => {
         </Row>
       </Block>
       
-      
+      <Sheet 
+        opened={popupOpened} 
+      >
+        <Block>
+          {/* <BlockTitle>下单成功</BlockTitle>  */}
+          <Button color="green">下单成功</Button>
+        </Block>
+      </Sheet>
     </Page>
   );
 };
