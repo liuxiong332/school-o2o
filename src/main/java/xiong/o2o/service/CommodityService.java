@@ -47,6 +47,10 @@ public class CommodityService {
     @Autowired
     private RedisTemplate redisTemplate;
 
+    String genCommodityRedisKey(Long itemId) {
+        return "commodity." + itemId;
+    }
+
     @Transactional
     public List<CommodityVO> getAllCommodities() {
 
@@ -172,7 +176,8 @@ public class CommodityService {
 
         // 减库存
         inventoryMapper.decreaseQuantity(commodityId,1);
-
+        // 减库存，会导致commodity缓存失效
+        redisTemplate.delete(genCommodityRedisKey(commodityId));
         // 查询是否正在秒杀活动中
         QueryWrapper<Seckill> seckillQuery = new QueryWrapper<>();
         seckillQuery.eq("commodity_id", commodityId);
